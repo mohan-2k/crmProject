@@ -1,0 +1,140 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class CustomerRelationshipManagement {
+
+    // Database connection parameters
+    private static final String URL = "jdbc:mysql://localhost:3306/python_db1";
+    private static final String USER = "root";
+    private static final String PASSWORD = "mohan@1234";
+
+    // Method to establish a connection to the database
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    // Method to insert a customer record
+    public static void insert(Connection con, String name, int age, String city, String mobile_no) throws SQLException {
+        String sql = "INSERT INTO users (name, age, city, mobile_no) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setInt(2, age);
+            stmt.setString(3, city);
+            stmt.setString(4, mobile_no);
+            stmt.executeUpdate();
+            System.out.println("\nData Insertion successful");
+        }
+    }
+
+    // Method to update an existing customer record
+    public static void update(Connection con, String name, int age, String city, int id, String mobile_no) throws SQLException {
+        String sql = "UPDATE users SET name = ?, age = ?, city = ?, mobile_no = ? WHERE id = ?";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setInt(2, age);
+            stmt.setString(3, city);
+            stmt.setString(4, mobile_no);
+            stmt.setInt(5, id);
+            stmt.executeUpdate();
+            System.out.println("\nData Update successful");
+        }
+    }
+
+    // Method to select and display all customers
+    public static void select(Connection con) throws SQLException {
+        String sql = "SELECT ID, NAME, AGE, CITY, MOBILE_NO FROM users";
+        try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            System.out.println("\nID\tNAME\tAGE\tCITY\tMOBILE_NO");
+            while (rs.next()) {
+                int id = rs.getInt("ID");
+                String name = rs.getString("NAME");
+                int age = rs.getInt("AGE");
+                String city = rs.getString("CITY");
+                String mobile_no = rs.getString("MOBILE_NO");
+                System.out.println(id + "\t" + name + "\t" + age + "\t" + city + "\t" + mobile_no);
+            }
+        }
+    }
+
+    // Method to delete a customer by ID
+    public static void delete(Connection con, int id) throws SQLException {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+            System.out.println("\nData Deleted Successfully");
+        }
+    }
+
+    // Main method to interact with the user and execute CRUD operations
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        try (Connection con = getConnection()) {
+            System.out.println("Connected to the database\n");
+            System.out.println("CUSTOMER RELATIONSHIP MANAGEMENT");
+
+            while (true) {
+                System.out.println("\n1. Add Customer");
+                System.out.println("2. Update Customer");
+                System.out.println("3. View Customer");
+                System.out.println("4. Delete Customer");
+                System.out.println("5. Quit");
+                System.out.print("\nEnter Your Choice: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+
+                switch (choice) {
+                    case 1:
+                        System.out.print("\nEnter Name: ");
+                        String name = scanner.nextLine();
+                        System.out.print("Enter Age: ");
+                        int age = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter City: ");
+                        String city = scanner.nextLine();
+                        System.out.print("Enter Mobile No: ");
+                        String mobile_no = scanner.nextLine();
+                        insert(con, name, age, city, mobile_no);
+                        break;
+
+                    case 2:
+                        System.out.print("Enter ID to Update: ");
+                        int updateId = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter Name: ");
+                        String updateName = scanner.nextLine();
+                        System.out.print("Enter Age: ");
+                        int updateAge = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        System.out.print("Enter City: ");
+                        String updateCity = scanner.nextLine();
+                        System.out.print("Enter Mobile No: ");
+                        String updateMobileNo = scanner.nextLine();
+                        update(con, updateName, updateAge, updateCity, updateId, updateMobileNo);
+                        break;
+
+                    case 3:
+                        select(con);
+                        break;
+
+                    case 4:
+                        System.out.print("Enter ID to Delete: ");
+                        int deleteId = scanner.nextInt();
+                        delete(con, deleteId);
+                        break;
+
+                    case 5:
+                        System.out.println("Exiting the program...");
+                        return;
+
+                    default:
+                        System.out.println("Invalid selection. Please try again!");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
